@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Laundry Business</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="fullname">Fullname</string>
+    <string name="email">Email</string>
+    <string name="loginhere">Log In Here</string>
+    <string name="login">Log In</string>
+    <string name="signuphere">Create a new account!</string>
+    <string name="back">Back!</string>
+</resources>
