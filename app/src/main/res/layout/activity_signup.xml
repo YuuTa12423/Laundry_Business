@@ -80,7 +80,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/poppinsmedium"
                 android:inputType="textPersonName"
-                android:hint="Enter your full name" />
+                android:hint="  " />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Address -->
@@ -105,7 +105,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/poppinsmedium"
-                android:hint="Enter your address"
+                android:hint="                           "
                 android:inputType="textMultiLine"
                 android:maxLines="5"
                 android:minLines="3" />
@@ -134,7 +134,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/poppinsmedium"
                 android:inputType="textPersonName"
-                android:hint="Choose a username" />
+                android:hint="                       " />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Email -->
@@ -160,7 +160,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/poppinsmedium"
                 android:inputType="textEmailAddress"
-                android:hint="Enter your email" />
+                android:hint="                             " />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Password -->
@@ -187,7 +187,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/poppinsmedium"
                 android:inputType="textPassword"
-                android:hint="Create a password" />
+                android:hint="                        " />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Password Requirements Hint -->
@@ -232,7 +232,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- ProgressBar (added) -->
+        <!-- ProgressBar -->
         <ProgressBar
             android:id="@+id/progress"
             android:layout_width="wrap_content"
@@ -245,7 +245,7 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Sign In (added clickable hint) -->
+    <!-- Sign In -->
     <TextView
         android:id="@+id/textViewSignIn"
         android:layout_width="wrap_content"
