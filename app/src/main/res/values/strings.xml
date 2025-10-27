@@ -8,4 +8,14 @@
     <string name="login">Log In</string>
     <string name="signuphere">Create a new account!</string>
     <string name="back">Back!</string>
+
+    <string-array name="detergent_options">
+        <item>Ariel</item>
+        <item>Tide</item>
+        <item>Surf</item>
+        <item>Breeze</item>
+        <item>Downy</item>
+        <item>Faber-Castell</item>
+        <item>Other</item>
+    </string-array>
 </resources>
