@@ -71,8 +71,12 @@ public class Signup extends AppCompatActivity {
             String password = textInputEditTextPassword.getText().toString().trim();
             String email = textInputEditTextEmail.getText().toString().trim();
 
-            if (!fullname.isEmpty() && !address.isEmpty() && !username.isEmpty() &&
-                    !password.isEmpty() && !email.isEmpty() && checkboxTerms.isChecked()) {
+            boolean fieldsFilled = !fullname.isEmpty() && !address.isEmpty() && !username.isEmpty() &&
+                    !password.isEmpty() && !email.isEmpty();
+            boolean termsChecked = checkboxTerms.isChecked(); // Validation for Checkbox
+
+            if (fieldsFilled && termsChecked) {
+                // If all fields are filled and terms are checked, proceed with signup
                 progressBar.setVisibility(View.VISIBLE);
 
                 Handler handler = new Handler(Looper.getMainLooper());
@@ -98,7 +102,7 @@ public class Signup extends AppCompatActivity {
                             String result = putData.getResult();
                             if (result.equals("Sign Up Success")) {
                                 Toast.makeText(getApplicationContext(), result, Toast.LENGTH_SHORT).show();
-                                Intent intent = new Intent(getApplicationContext(), Login.class);  // Navigate to Login after success
+                                Intent intent = new Intent(getApplicationContext(), Login.class);
                                 startActivity(intent);
                                 finish();
                             } else {
@@ -114,10 +118,11 @@ public class Signup extends AppCompatActivity {
                     }
                 });
             } else {
-                if (!checkboxTerms.isChecked()) {
-                    Toast.makeText(getApplicationContext(), "Please agree to the Terms of Service", Toast.LENGTH_SHORT).show();
-                } else {
+                // Handle missing fields or unchecked terms
+                if (!fieldsFilled) {
                     Toast.makeText(getApplicationContext(), "All Fields are Required", Toast.LENGTH_SHORT).show();
+                } else if (!termsChecked) {
+                    Toast.makeText(getApplicationContext(), "Please agree to the Terms of Service", Toast.LENGTH_SHORT).show();
                 }
             }
         });

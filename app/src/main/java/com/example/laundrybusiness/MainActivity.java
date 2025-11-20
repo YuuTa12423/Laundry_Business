@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView welcomeText, activeOrdersText;
 
     @Override
-protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
@@ -49,7 +49,7 @@ protected void onCreate(Bundle savedInstanceState) {
         activeOrdersText = findViewById(R.id.activeOrdersText);
 
         // Get username from Intent (passed from Login)
-        String username = getIntent().getStringExtra("username");  // <-- REFERENCES Intent
+        String username = getIntent().getStringExtra("username");
         if (username != null && !username.isEmpty()) {
             welcomeText.setText("Welcome back, " + username);
         } else {
@@ -65,25 +65,32 @@ protected void onCreate(Bundle savedInstanceState) {
         initRecentOrders();
     }
 
-    // Quick Actions Click Listeners
+    // Quick Actions Click Listeners (MODIFIED)
     private void initQuickActions() {
         MaterialCardView cardPlaceOrder = findViewById(R.id.cardPlaceOrder);
         MaterialCardView cardMyOrders = findViewById(R.id.cardMyOrders);
+        MaterialCardView cardInvoice = findViewById(R.id.cardInvoice); // Initialized Invoice Card
 
         cardPlaceOrder.setOnClickListener(v -> {
-            Toast.makeText(this, "Place New Order clicked!", Toast.LENGTH_SHORT).show();
-            // TODO: Start PlaceOrderActivity
+            // Start PlaceOrderActivity
+            Intent intent = new Intent(this, PlaceOrderActivity.class);
+            startActivity(intent);
         });
 
         cardMyOrders.setOnClickListener(v -> {
-            Toast.makeText(this, "My Orders clicked!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "My Orders clicked! (TODO: Implement MyOrdersActivity)", Toast.LENGTH_SHORT).show();
             // TODO: Start MyOrdersActivity
         });
 
-
+        // NEW: Invoice Click Listener
+        cardInvoice.setOnClickListener(v -> {
+            // Start InvoiceActivity
+            Intent intent = new Intent(this, InvoiceActivity.class);
+            startActivity(intent);
+        });
     }
 
-    // Recent Orders Setup
+    // Recent Orders Setup (Unchanged)
     private void initRecentOrders() {
         recyclerRecentOrders = findViewById(R.id.recyclerRecentOrders);
         recyclerRecentOrders.setLayoutManager(new LinearLayoutManager(this));
@@ -98,7 +105,7 @@ protected void onCreate(Bundle savedInstanceState) {
         recyclerRecentOrders.setAdapter(adapter);
     }
 
-    // Simple Data Model for Orders
+    // Simple Data Model for Orders (Unchanged)
     private static class OrderItem {
         String id;
         String dateStatus;
@@ -113,7 +120,7 @@ protected void onCreate(Bundle savedInstanceState) {
         }
     }
 
-    // RecyclerView Adapter for Recent Orders
+    // RecyclerView Adapter for Recent Orders (Unchanged)
     private class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHolder> {
         private List<OrderItem> items;
 
@@ -137,17 +144,17 @@ protected void onCreate(Bundle savedInstanceState) {
             // Notification/Status Icon Tint (USES ContextCompat and ColorStateList)
             if (item.isDelivered) {
                 holder.orderStatusIcon.setImageResource(android.R.drawable.checkbox_on_background);  // Check icon
-                int color = ContextCompat.getColor(MainActivity.this, R.color.primary);  // <-- REFERENCES ContextCompat
-                holder.orderStatusIcon.setImageTintList(ColorStateList.valueOf(color));  // <-- REFERENCES ColorStateList
+                int color = ContextCompat.getColor(MainActivity.this, R.color.primary);
+                holder.orderStatusIcon.setImageTintList(ColorStateList.valueOf(color));
             } else {
                 holder.orderStatusIcon.setImageResource(android.R.drawable.ic_lock_idle_alarm);  // Clock icon
-                int color = ContextCompat.getColor(MainActivity.this, R.color.gray);  // <-- REFERENCES ContextCompat
-                holder.orderStatusIcon.setImageTintList(ColorStateList.valueOf(color));  // <-- REFERENCES ColorStateList
+                int color = ContextCompat.getColor(MainActivity.this, R.color.gray);
+                holder.orderStatusIcon.setImageTintList(ColorStateList.valueOf(color));
             }
 
             // Click listener for order item (whole card)
             holder.itemView.setOnClickListener(v -> {
-                Toast.makeText(MainActivity.this, "Viewing details for " + item.id, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Viewing details for " + item.id + " (TODO: Implement OrderDetailActivity)", Toast.LENGTH_SHORT).show();
                 // TODO: Start OrderDetailActivity with item.id
             });
         }

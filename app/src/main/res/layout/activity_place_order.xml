@@ -2,6 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
@@ -14,7 +15,6 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Information Section -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -25,7 +25,6 @@
             android:textStyle="bold"
             android:fontFamily="sans-serif-medium" />
 
-        <!-- Complete Address -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -35,7 +34,6 @@
             android:textSize="16sp"
             android:fontFamily="sans-serif-medium" />
 
-        <!-- Street/Barangay -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -50,7 +48,6 @@
                 android:inputType="text" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- City -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -65,7 +62,6 @@
                 android:inputType="text" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Zip Code -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -80,7 +76,6 @@
                 android:inputType="number" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Service Details Section -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -91,7 +86,6 @@
             android:textStyle="bold"
             android:fontFamily="sans-serif-medium" />
 
-        <!-- Service Type Selection -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -127,7 +121,21 @@
                 android:text="Wash Dry and Iron" />
         </RadioGroup>
 
-        <!-- Detergent Preference -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:hint="Estimated Weight (in kg)"
+            app:endIconContentDescription="Enter estimated laundry weight">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/weightEstimate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -144,7 +152,6 @@
             android:layout_marginBottom="16dp"
             android:entries="@array/detergent_options" />
 
-        <!-- Softener Checkbox -->
         <CheckBox
             android:id="@+id/softenerCheck"
             android:layout_width="wrap_content"
@@ -152,7 +159,70 @@
             android:layout_marginBottom="16dp"
             android:text="Add Softener" />
 
-        <!-- Special Instructions -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="Drying Preference"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif-medium" />
+
+        <RadioGroup
+            android:id="@+id/dryingGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/tumbleDryNormal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tumble Dry Normal" />
+
+            <RadioButton
+                android:id="@+id/lowHeatOnly"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Low Heat Only" />
+
+            <RadioButton
+                android:id="@+id/hangDry"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hang Dry / Air Dry" />
+        </RadioGroup>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="Folding Preference"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif-medium" />
+
+        <RadioGroup
+            android:id="@+id/foldingGroup"
+            android:layout_width="wrap_content"  android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/foldOnly"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fold Only" />
+
+            <RadioButton
+                android:id="@+id/foldAndHang"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fold and Hang (Customer provides hangers)" />
+        </RadioGroup>
+
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -177,7 +247,6 @@
                 android:maxLines="5" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Order Scheduling Section -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -188,7 +257,6 @@
             android:textStyle="bold"
             android:fontFamily="sans-serif-medium" />
 
-        <!-- Scheduling Options -->
         <RadioGroup
             android:id="@+id/schedulingGroup"
             android:layout_width="match_parent"
@@ -215,45 +283,94 @@
                 android:text="Pick-up" />
         </RadioGroup>
 
-        <!-- Pick-up Date -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            android:text="Payment Method"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium" />
+
+        <RadioGroup
+            android:id="@+id/paymentMethodGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/paymentGcash"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="G-Cash (Pay Now)" />
+
+            <RadioButton
+                android:id="@+id/paymentCOP"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cash on Pickup (Pay Later)"
+                android:checked="true" />
+        </RadioGroup>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayoutGcashRef"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            android:hint="G-Cash Reference Number (13 digits)">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/gcashReference"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:maxLength="13" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:hint="Pick-up Date (e.g., 2023-10-15)"
+            android:hint="Pick-up Date (Tap to select)"
             app:startIconDrawable="@drawable/outline_date_range_24">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/pickUpDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="date" />
+                android:focusable="false"
+                android:clickable="true"
+                android:inputType="none" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Pick-up Time -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:hint="Pick-up Time (e.g., 14:00)"
+            android:hint="Pick-up Time (Tap to select)"
             app:startIconDrawable="@drawable/outline_schedule_24">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/pickUpTime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="time" />
+                android:focusable="false"
+                android:clickable="true"
+                android:inputType="none" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Submit Button -->
         <Button
             android:id="@+id/submitOrderButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="Submit Order"
-            android:textColor="@android:color/white"
-            android:backgroundTint="@color/primary" />
+            android:textColor="?attr/colorOnPrimary"
+            android:backgroundTint="?attr/colorPrimary" />
 
     </LinearLayout>
 
