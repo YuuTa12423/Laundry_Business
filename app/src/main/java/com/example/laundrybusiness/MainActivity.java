@@ -38,11 +38,17 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+
+        // Ensure R.id.main exists in activity_main.xml
+        View rootLayout = findViewById(R.id.main);
+        if (rootLayout != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(rootLayout, (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+                return insets;
+            });
+        }
+
 
         // Dynamic Welcome and Active Orders Text (USES Intent)
         welcomeText = findViewById(R.id.welcomeText);
@@ -50,60 +56,84 @@ public class MainActivity extends AppCompatActivity {
 
         // Get username from Intent (passed from Login)
         String username = getIntent().getStringExtra("username");
-        if (username != null && !username.isEmpty()) {
-            welcomeText.setText("Welcome back, " + username);
-        } else {
-            welcomeText.setText("Welcome back, User");  // Fallback
+
+        // CRASH PREVENTION: Null check before calling setText()
+        if (welcomeText != null) {
+            if (username != null && !username.isEmpty()) {
+                welcomeText.setText("Welcome back, " + username);
+            } else {
+                welcomeText.setText("Welcome back, User");
+            }
         }
 
+
         // Sample active orders count (hardcoded; replace with backend fetch)
-        int activeOrdersCount = 2;  // TODO: Fetch from API
-        activeOrdersText.setText("You have " + activeOrdersCount + " active orders");
+        int activeOrdersCount = 2;
+
+        // CRASH PREVENTION: Null check before calling setText()
+        if (activeOrdersText != null) {
+            activeOrdersText.setText("You have " + activeOrdersCount + " active orders");
+        }
+
 
         // Initialize dashboard
         initQuickActions();
         initRecentOrders();
     }
 
-    // Quick Actions Click Listeners (MODIFIED)
+    // Quick Actions Click Listeners
     private void initQuickActions() {
+        // NOTE: If R.id.cardInvoice is missing in XML, the app will crash here.
         MaterialCardView cardPlaceOrder = findViewById(R.id.cardPlaceOrder);
         MaterialCardView cardMyOrders = findViewById(R.id.cardMyOrders);
-        MaterialCardView cardInvoice = findViewById(R.id.cardInvoice); // Initialized Invoice Card
+        MaterialCardView cardInvoice = findViewById(R.id.cardInvoice);
 
-        cardPlaceOrder.setOnClickListener(v -> {
-            // Start PlaceOrderActivity
-            Intent intent = new Intent(this, PlaceOrderActivity.class);
-            startActivity(intent);
-        });
+        // CRASH PREVENTION: Null check before setting listener
+        if (cardPlaceOrder != null) {
+            cardPlaceOrder.setOnClickListener(v -> {
+                Intent intent = new Intent(this, PlaceOrderActivity.class);
+                startActivity(intent);
+            });
+        }
 
-        cardMyOrders.setOnClickListener(v -> {
-            Toast.makeText(this, "My Orders clicked! (TODO: Implement MyOrdersActivity)", Toast.LENGTH_SHORT).show();
-            // TODO: Start MyOrdersActivity
-        });
+        if (cardMyOrders != null) {
+            cardMyOrders.setOnClickListener(v -> {
+                Toast.makeText(this, "My Orders clicked! (TODO: Implement MyOrdersActivity)", Toast.LENGTH_SHORT).show();
+                // TODO: Start MyOrdersActivity
+            });
+        }
 
-        // NEW: Invoice Click Listener
-        cardInvoice.setOnClickListener(v -> {
-            // Start InvoiceActivity
-            Intent intent = new Intent(this, InvoiceActivity.class);
-            startActivity(intent);
-        });
+        if (cardInvoice != null) {
+            cardInvoice.setOnClickListener(v -> {
+                Intent intent = new Intent(this, InvoiceActivity.class);
+                startActivity(intent);
+            });
+        }
     }
 
     // Recent Orders Setup (Unchanged)
     private void initRecentOrders() {
         recyclerRecentOrders = findViewById(R.id.recyclerRecentOrders);
-        recyclerRecentOrders.setLayoutManager(new LinearLayoutManager(this));
 
-        // Sample data (replace with backend fetch)
-        orderList = new ArrayList<>();
-        orderList.add(new OrderItem("Order #123", "Delivered on Oct 15, 2023", "$25.00", true));  // Delivered (primary blue)
-        orderList.add(new OrderItem("Order #124", "Pending on Oct 16, 2023", "$30.00", false));  // Pending (gray)
-        orderList.add(new OrderItem("Order #125", "Delivered on Oct 17, 2023", "$20.00", true));  // Delivered
+        // CRASH PREVENTION: Null check for RecyclerView
+        if (recyclerRecentOrders != null) {
+            recyclerRecentOrders.setLayoutManager(new LinearLayoutManager(this));
 
-        OrderAdapter adapter = new OrderAdapter(orderList);
-        recyclerRecentOrders.setAdapter(adapter);
+            // Sample data (replace with backend fetch)
+            orderList = new ArrayList<>();
+            orderList.add(new OrderItem("Order #123", "Delivered on Oct 15, 2023", "$25.00", true));
+            orderList.add(new OrderItem("Order #124", "Pending on Oct 16, 2023", "$30.00", false));
+            orderList.add(new OrderItem("Order #125", "Delivered on Oct 17, 2023", "$20.00", true));
+
+            OrderAdapter adapter = new OrderAdapter(orderList);
+            recyclerRecentOrders.setAdapter(adapter);
+        } else {
+            // Log error if RecyclerView is missing
+            System.err.println("FATAL: RecyclerView (recyclerRecentOrders) not found.");
+        }
     }
+
+    // ... (OrderItem and OrderAdapter classes remain the same) ...
 
     // Simple Data Model for Orders (Unchanged)
     private static class OrderItem {
