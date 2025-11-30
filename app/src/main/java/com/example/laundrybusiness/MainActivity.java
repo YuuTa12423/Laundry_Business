@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Simple Data Model for Orders (Unchanged)
-    private static class OrderItem {
+    public static class OrderItem {
         String id;
         String dateStatus;
         String price;
@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // RecyclerView Adapter for Recent Orders (Unchanged)
-    private class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHolder> {
+    public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHolder> {
         private List<OrderItem> items;
 
         OrderAdapter(List<OrderItem> items) {

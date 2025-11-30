@@ -24,10 +24,9 @@ import java.util.Locale;
 
 public class PlaceOrderActivity extends AppCompatActivity {
 
-    // ALL UI COMPONENTS DECLARED
     TextInputEditText streetBarangay, city, zipCode, specialInstructions, pickUpDate, pickUpTime, weightEstimate, gcashReference;
     RadioGroup serviceTypeGroup, schedulingGroup, dryingGroup, foldingGroup, paymentMethodGroup;
-    TextInputLayout textInputLayoutGcashRef; // To control visibility of G-Cash input
+    TextInputLayout textInputLayoutGcashRef;
     Spinner detergentSpinner;
     CheckBox softenerCheck;
     Button submitOrderButton;
@@ -38,63 +37,49 @@ public class PlaceOrderActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_place_order);
 
-        // This line requires the root view of activity_place_order.xml to have android:id="@+id/main"
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        // --- 1. INITIALIZE VIEWS ---
+        // --- 1. INITIALIZE VIEWS (as before) ---
         streetBarangay = findViewById(R.id.streetBarangay);
         city = findViewById(R.id.city);
         zipCode = findViewById(R.id.zipCode);
         specialInstructions = findViewById(R.id.specialInstructions);
-
-        // Date/Time fields
         pickUpDate = findViewById(R.id.pickUpDate);
         pickUpTime = findViewById(R.id.pickUpTime);
-
-        // New order preferences
         weightEstimate = findViewById(R.id.weightEstimate);
         dryingGroup = findViewById(R.id.dryingGroup);
         foldingGroup = findViewById(R.id.foldingGroup);
-
-        // Radio Groups, Checkbox, Spinner, Button
         serviceTypeGroup = findViewById(R.id.serviceTypeGroup);
         schedulingGroup = findViewById(R.id.schedulingGroup);
         detergentSpinner = findViewById(R.id.detergentSpinner);
         softenerCheck = findViewById(R.id.softenerCheck);
         submitOrderButton = findViewById(R.id.submitOrderButton);
-
-        // Payment views
         gcashReference = findViewById(R.id.gcashReference);
         paymentMethodGroup = findViewById(R.id.paymentMethodGroup);
         textInputLayoutGcashRef = findViewById(R.id.textInputLayoutGcashRef);
 
-
-        // --- 2. UX ENHANCEMENT: DATE/TIME PICKERS ---
-        // Attach Date and Time Pickers to the input fields
+        // --- 2. UX ENHANCEMENT & CONDITIONAL LOGIC (as before) ---
         pickUpDate.setOnClickListener(v -> showDatePickerDialog());
         pickUpTime.setOnClickListener(v -> showTimePickerDialog());
 
-
-        // --- 3. CONDITIONAL PAYMENT LOGIC ---
-        // Toggle G-Cash Reference Input Visibility based on RadioGroup selection
         paymentMethodGroup.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.paymentGcash) {
                 textInputLayoutGcashRef.setVisibility(View.VISIBLE);
             } else {
                 textInputLayoutGcashRef.setVisibility(View.GONE);
-                gcashReference.setText(""); // Clear input when switching back to COP
+                gcashReference.setText("");
             }
         });
 
 
-        // --- 4. SUBMISSION LOGIC & VALIDATION ---
+        // --- 3. SUBMISSION LOGIC: ONLY ADD ORDER ON SUCCESSFUL COMPLETION ---
         submitOrderButton.setOnClickListener(v -> {
 
-            // 4a. Basic Address Validation
+            // 3a. Validation Checks (Return if any fails)
             if (streetBarangay.getText().toString().trim().isEmpty() ||
                     city.getText().toString().trim().isEmpty() ||
                     zipCode.getText().toString().trim().isEmpty()) {
@@ -102,7 +87,6 @@ public class PlaceOrderActivity extends AppCompatActivity {
                 return;
             }
 
-            // 4b. Service and Scheduling Validation
             if (serviceTypeGroup.getCheckedRadioButtonId() == -1) {
                 Toast.makeText(this, "Please select a service type", Toast.LENGTH_SHORT).show();
                 return;
@@ -113,13 +97,12 @@ public class PlaceOrderActivity extends AppCompatActivity {
                 return;
             }
 
-            // 4c. Payment Validation (REQUIRED)
             if (paymentMethodGroup.getCheckedRadioButtonId() == -1) {
                 Toast.makeText(this, "Please select a payment method", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // 4d. G-Cash Reference Validation (CONDITIONAL)
+            // Conditional G-Cash Validation
             if (paymentMethodGroup.getCheckedRadioButtonId() == R.id.paymentGcash) {
                 String reference = gcashReference.getText().toString().trim();
                 if (reference.isEmpty() || reference.length() < 13) {
@@ -128,19 +111,28 @@ public class PlaceOrderActivity extends AppCompatActivity {
                 }
             }
 
-            // Determine final payment method for API submission
+            // =========================================================================
+            // 3b. SUCCESSFUL COMPLETION: EXECUTE THE ORDER ADDITION/SUBMISSION
+            // =========================================================================
+
+            // Determine data fields to be sent (Example of data gathering)
             String paymentMethod = (paymentMethodGroup.getCheckedRadioButtonId() == R.id.paymentGcash) ? "GCASH" : "COP";
             String referenceNumber = (paymentMethod.equals("GCASH")) ? gcashReference.getText().toString() : "";
 
+            // 💡 TODO: Place your HTTP/Retrofit call here to send ALL collected data
+            // (Address, Service, Preferences, Scheduling, Payment, Reference) to the server.
+            // Only upon receiving a successful server response should you display the success Toast.
 
-            // TODO: Implement API submission logic here!
 
-            Toast.makeText(this, "Order submitted via " + paymentMethod + ". (API submission needed)", Toast.LENGTH_SHORT).show();
+            // --- Placeholder for successful network call ---
+            Toast.makeText(this, "Order #999 Added Successfully via " + paymentMethod + "!", Toast.LENGTH_LONG).show();
+
+            // --- Final Action: Close the form ---
             finish();  // Go back to MainActivity
         });
     }
 
-    // Method to show Date Picker
+    // Date Picker Logic (Unchanged)
     private void showDatePickerDialog() {
         final Calendar c = Calendar.getInstance();
         int year = c.get(Calendar.YEAR);
@@ -149,14 +141,13 @@ public class PlaceOrderActivity extends AppCompatActivity {
 
         DatePickerDialog datePickerDialog = new DatePickerDialog(this,
                 (view, selectedYear, selectedMonth, selectedDay) -> {
-                    // Display the selected date in YYYY-MM-DD format
                     String date = String.format(Locale.getDefault(), "%d-%02d-%02d", selectedYear, selectedMonth + 1, selectedDay);
                     pickUpDate.setText(date);
                 }, year, month, day);
         datePickerDialog.show();
     }
 
-    // Method to show Time Picker
+    // Time Picker Logic (Unchanged)
     private void showTimePickerDialog() {
         final Calendar c = Calendar.getInstance();
         int hour = c.get(Calendar.HOUR_OF_DAY);
@@ -164,10 +155,9 @@ public class PlaceOrderActivity extends AppCompatActivity {
 
         TimePickerDialog timePickerDialog = new TimePickerDialog(this,
                 (view, selectedHour, selectedMinute) -> {
-                    // Display the selected time in 24h format HH:MM
                     String time = String.format(Locale.getDefault(), "%02d:%02d", selectedHour, selectedMinute);
                     pickUpTime.setText(time);
-                }, hour, minute, true); // true for 24-hour format
+                }, hour, minute, true);
         timePickerDialog.show();
     }
 }
