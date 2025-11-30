@@ -13,11 +13,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.LaundryBusiness"
-        android:usesCleartextTraffic="true">  <!-- Allows HTTP for local development -->
-
-        <activity
-            android:name=".Signup"
-            android:exported="false" />
+        android:usesCleartextTraffic="true">  <activity
+        android:name=".Signup"
+        android:exported="false" />
 
         <activity
             android:name=".Login"
@@ -32,9 +30,20 @@
             android:name=".MainActivity"
             android:exported="false" />
 
-        <!-- Added: New activity for the order form -->
         <activity
             android:name=".PlaceOrderActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".MyOrdersActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".InvoiceActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".OrderDetailActivity"
             android:exported="false" />
 
     </application>
