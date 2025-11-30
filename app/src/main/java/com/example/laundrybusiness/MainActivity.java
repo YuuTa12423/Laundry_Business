@@ -33,32 +33,48 @@ public class MainActivity extends AppCompatActivity {
     private TextView welcomeText, activeOrdersText;
 
     @Override
-protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+
+        // Ensure R.id.main exists in activity_main.xml
+        View rootLayout = findViewById(R.id.main);
+        if (rootLayout != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(rootLayout, (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+                return insets;
+            });
+        }
+
 
         // Dynamic Welcome and Active Orders Text (USES Intent)
         welcomeText = findViewById(R.id.welcomeText);
         activeOrdersText = findViewById(R.id.activeOrdersText);
 
         // Get username from Intent (passed from Login)
-        String username = getIntent().getStringExtra("username");  // <-- REFERENCES Intent
-        if (username != null && !username.isEmpty()) {
-            welcomeText.setText("Welcome back, " + username);
-        } else {
-            welcomeText.setText("Welcome back, User");  // Fallback
+        String username = getIntent().getStringExtra("username");
+
+        // CRASH PREVENTION: Null check before calling setText()
+        if (welcomeText != null) {
+            if (username != null && !username.isEmpty()) {
+                welcomeText.setText("Welcome back, " + username);
+            } else {
+                welcomeText.setText("Welcome back, User");
+            }
         }
 
+
         // Sample active orders count (hardcoded; replace with backend fetch)
-        int activeOrdersCount = 2;  // TODO: Fetch from API
-        activeOrdersText.setText("You have " + activeOrdersCount + " active orders");
+        int activeOrdersCount = 2;
+
+        // CRASH PREVENTION: Null check before calling setText()
+        if (activeOrdersText != null) {
+            activeOrdersText.setText("You have " + activeOrdersCount + " active orders");
+        }
+
 
         // Initialize dashboard
         initQuickActions();
@@ -67,39 +83,60 @@ protected void onCreate(Bundle savedInstanceState) {
 
     // Quick Actions Click Listeners
     private void initQuickActions() {
+        // NOTE: If R.id.cardInvoice is missing in XML, the app will crash here.
         MaterialCardView cardPlaceOrder = findViewById(R.id.cardPlaceOrder);
         MaterialCardView cardMyOrders = findViewById(R.id.cardMyOrders);
+        MaterialCardView cardInvoice = findViewById(R.id.cardInvoice);
 
-        cardPlaceOrder.setOnClickListener(v -> {
-            Toast.makeText(this, "Place New Order clicked!", Toast.LENGTH_SHORT).show();
-            // TODO: Start PlaceOrderActivity
-        });
+        // CRASH PREVENTION: Null check before setting listener
+        if (cardPlaceOrder != null) {
+            cardPlaceOrder.setOnClickListener(v -> {
+                Intent intent = new Intent(this, PlaceOrderActivity.class);
+                startActivity(intent);
+            });
+        }
 
-        cardMyOrders.setOnClickListener(v -> {
-            Toast.makeText(this, "My Orders clicked!", Toast.LENGTH_SHORT).show();
-            // TODO: Start MyOrdersActivity
-        });
+        if (cardMyOrders != null) {
+            cardMyOrders.setOnClickListener(v -> {
+                Toast.makeText(this, "My Orders clicked! (TODO: Implement MyOrdersActivity)", Toast.LENGTH_SHORT).show();
+                // TODO: Start MyOrdersActivity
+            });
+        }
 
-
+        if (cardInvoice != null) {
+            cardInvoice.setOnClickListener(v -> {
+                Intent intent = new Intent(this, InvoiceActivity.class);
+                startActivity(intent);
+            });
+        }
     }
 
-    // Recent Orders Setup
+    // Recent Orders Setup (Unchanged)
     private void initRecentOrders() {
         recyclerRecentOrders = findViewById(R.id.recyclerRecentOrders);
-        recyclerRecentOrders.setLayoutManager(new LinearLayoutManager(this));
 
-        // Sample data (replace with backend fetch)
-        orderList = new ArrayList<>();
-        orderList.add(new OrderItem("Order #123", "Delivered on Oct 15, 2023", "$25.00", true));  // Delivered (primary blue)
-        orderList.add(new OrderItem("Order #124", "Pending on Oct 16, 2023", "$30.00", false));  // Pending (gray)
-        orderList.add(new OrderItem("Order #125", "Delivered on Oct 17, 2023", "$20.00", true));  // Delivered
+        // CRASH PREVENTION: Null check for RecyclerView
+        if (recyclerRecentOrders != null) {
+            recyclerRecentOrders.setLayoutManager(new LinearLayoutManager(this));
 
-        OrderAdapter adapter = new OrderAdapter(orderList);
-        recyclerRecentOrders.setAdapter(adapter);
+            // Sample data (replace with backend fetch)
+            orderList = new ArrayList<>();
+            orderList.add(new OrderItem("Order #123", "Delivered on Oct 15, 2023", "$25.00", true));
+            orderList.add(new OrderItem("Order #124", "Pending on Oct 16, 2023", "$30.00", false));
+            orderList.add(new OrderItem("Order #125", "Delivered on Oct 17, 2023", "$20.00", true));
+
+            OrderAdapter adapter = new OrderAdapter(orderList);
+            recyclerRecentOrders.setAdapter(adapter);
+        } else {
+            // Log error if RecyclerView is missing
+            System.err.println("FATAL: RecyclerView (recyclerRecentOrders) not found.");
+        }
     }
 
-    // Simple Data Model for Orders
-    private static class OrderItem {
+    // ... (OrderItem and OrderAdapter classes remain the same) ...
+
+    // Simple Data Model for Orders (Unchanged)
+    public static class OrderItem {
         String id;
         String dateStatus;
         String price;
@@ -113,8 +150,8 @@ protected void onCreate(Bundle savedInstanceState) {
         }
     }
 
-    // RecyclerView Adapter for Recent Orders
-    private class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHolder> {
+    // RecyclerView Adapter for Recent Orders (Unchanged)
+    public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHolder> {
         private List<OrderItem> items;
 
         OrderAdapter(List<OrderItem> items) {
@@ -137,17 +174,17 @@ protected void onCreate(Bundle savedInstanceState) {
             // Notification/Status Icon Tint (USES ContextCompat and ColorStateList)
             if (item.isDelivered) {
                 holder.orderStatusIcon.setImageResource(android.R.drawable.checkbox_on_background);  // Check icon
-                int color = ContextCompat.getColor(MainActivity.this, R.color.primary);  // <-- REFERENCES ContextCompat
-                holder.orderStatusIcon.setImageTintList(ColorStateList.valueOf(color));  // <-- REFERENCES ColorStateList
+                int color = ContextCompat.getColor(MainActivity.this, R.color.primary);
+                holder.orderStatusIcon.setImageTintList(ColorStateList.valueOf(color));
             } else {
                 holder.orderStatusIcon.setImageResource(android.R.drawable.ic_lock_idle_alarm);  // Clock icon
-                int color = ContextCompat.getColor(MainActivity.this, R.color.gray);  // <-- REFERENCES ContextCompat
-                holder.orderStatusIcon.setImageTintList(ColorStateList.valueOf(color));  // <-- REFERENCES ColorStateList
+                int color = ContextCompat.getColor(MainActivity.this, R.color.gray);
+                holder.orderStatusIcon.setImageTintList(ColorStateList.valueOf(color));
             }
 
             // Click listener for order item (whole card)
             holder.itemView.setOnClickListener(v -> {
-                Toast.makeText(MainActivity.this, "Viewing details for " + item.id, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Viewing details for " + item.id + " (TODO: Implement OrderDetailActivity)", Toast.LENGTH_SHORT).show();
                 // TODO: Start OrderDetailActivity with item.id
             });
         }
