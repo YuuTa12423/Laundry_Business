@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerRecentOrders;
     private Button viewAllButton;
     private List<OrderItem> orderList;
-    private TextView welcomeText, activeOrdersText;
+    private TextView welcomeText, activeOrdersText, emptyOrdersText; // ADDED emptyOrdersText
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
         // Dynamic Welcome and Active Orders Text (USES Intent)
         welcomeText = findViewById(R.id.welcomeText);
         activeOrdersText = findViewById(R.id.activeOrdersText);
+        emptyOrdersText = findViewById(R.id.emptyOrdersText); // INITIALIZE new TextView
 
         // Get username from Intent (passed from Login)
         String username = getIntent().getStringExtra("username");
@@ -67,8 +68,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        // Sample active orders count (hardcoded; replace with backend fetch)
-        int activeOrdersCount = 2;
+        // Sample active orders count (MODIFIED to 0)
+        int activeOrdersCount = 0;
 
         // CRASH PREVENTION: Null check before calling setText()
         if (activeOrdersText != null) {
@@ -81,14 +82,23 @@ public class MainActivity extends AppCompatActivity {
         initRecentOrders();
     }
 
-    // Quick Actions Click Listeners
+    // NOTE: To get the list to refresh automatically after placing an order,
+    // you should override the onResume method:
+    /*
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initRecentOrders(); // Re-runs the data fetch when returning from PlaceOrderActivity
+    }
+    */
+
+
+    // Quick Actions Click Listeners (Unchanged)
     private void initQuickActions() {
-        // NOTE: If R.id.cardInvoice is missing in XML, the app will crash here.
         MaterialCardView cardPlaceOrder = findViewById(R.id.cardPlaceOrder);
         MaterialCardView cardMyOrders = findViewById(R.id.cardMyOrders);
         MaterialCardView cardInvoice = findViewById(R.id.cardInvoice);
 
-        // CRASH PREVENTION: Null check before setting listener
         if (cardPlaceOrder != null) {
             cardPlaceOrder.setOnClickListener(v -> {
                 Intent intent = new Intent(this, PlaceOrderActivity.class);
@@ -111,29 +121,37 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Recent Orders Setup (Unchanged)
+    // Recent Orders Setup (MODIFIED to remove sample data and handle visibility)
     private void initRecentOrders() {
         recyclerRecentOrders = findViewById(R.id.recyclerRecentOrders);
 
-        // CRASH PREVENTION: Null check for RecyclerView
         if (recyclerRecentOrders != null) {
             recyclerRecentOrders.setLayoutManager(new LinearLayoutManager(this));
 
-            // Sample data (replace with backend fetch)
+            // MODIFIED: Start with an empty list. Data must be fetched via API.
             orderList = new ArrayList<>();
-            orderList.add(new OrderItem("Order #123", "Delivered on Oct 15, 2023", "$25.00", true));
-            orderList.add(new OrderItem("Order #124", "Pending on Oct 16, 2023", "$30.00", false));
-            orderList.add(new OrderItem("Order #125", "Delivered on Oct 17, 2023", "$20.00", true));
+
+            // TODO: In a real app, API.fetchRecentOrders() would go here.
 
             OrderAdapter adapter = new OrderAdapter(orderList);
             recyclerRecentOrders.setAdapter(adapter);
+
+            // Logic to show/hide based on content (Empty state)
+            if (orderList.isEmpty()) {
+                recyclerRecentOrders.setVisibility(View.GONE);
+                if (emptyOrdersText != null) {
+                    emptyOrdersText.setVisibility(View.VISIBLE);
+                }
+            } else {
+                recyclerRecentOrders.setVisibility(View.VISIBLE);
+                if (emptyOrdersText != null) {
+                    emptyOrdersText.setVisibility(View.GONE);
+                }
+            }
         } else {
-            // Log error if RecyclerView is missing
             System.err.println("FATAL: RecyclerView (recyclerRecentOrders) not found.");
         }
     }
-
-    // ... (OrderItem and OrderAdapter classes remain the same) ...
 
     // Simple Data Model for Orders (Unchanged)
     public static class OrderItem {
@@ -165,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onBindViewHolder(OrderViewHolder holder, int position) {
+        public void onBindViewHolder(OrderAdapter.OrderViewHolder holder, int position) {
             OrderItem item = items.get(position);
             holder.orderIdText.setText(item.id);
             holder.orderDateStatusText.setText(item.dateStatus);
