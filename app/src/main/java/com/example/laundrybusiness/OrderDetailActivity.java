@@ -1,84 +1,136 @@
+// File: OrderDetailActivity.java
+
 package com.example.laundrybusiness;
 
-import android.content.Intent; // ADDED: Import for Intent
-import android.content.res.ColorStateList;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
+import android.os.Bundle;
+import android.os.Handler;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.core.content.ContextCompat;
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
-public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHolder> {
-    private List<OrderItem> items;
-    // REMOVED: private View.OnClickListener onItemClickListener; (Unused field)
+public class OrderDetailActivity extends AppCompatActivity {
 
-    public OrderAdapter(List<OrderItem> items) {
-        this.items = items;
-    }
+    private String orderId;
+    private TextView orderDetailHeader;
+    private RecyclerView recyclerTimeline;
+    private Handler handler = new Handler();
+    private Runnable trackingRunnable;
+    private TimelineAdapter timelineAdapter;
 
-    @Override
-    public OrderViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        // This is where item_recent_order.xml is used
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_recent_order, parent, false);
-        return new OrderViewHolder(view);
-    }
+    // Define the fixed steps for the timeline
+    private final List<TimelineAdapter.TimelineStep> fixedTimelineSteps = createFixedTimelineSteps();
 
     @Override
-    public void onBindViewHolder(OrderViewHolder holder, int position) {
-        OrderItem item = items.get(position);
-        holder.orderIdText.setText(item.id);
-        holder.orderDateStatusText.setText(item.dateStatus);
-        holder.orderPriceText.setText("Total: " + item.price);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
-        // Notification/Status Icon Tint (Logic remains the same)
-        if (item.isDelivered) {
-            holder.orderStatusIcon.setImageResource(android.R.drawable.checkbox_on_background);
-            int color = ContextCompat.getColor(holder.itemView.getContext(), R.color.primary);
-            holder.orderStatusIcon.setImageTintList(ColorStateList.valueOf(color));
-        } else {
-            holder.orderStatusIcon.setImageResource(android.R.drawable.ic_lock_idle_alarm);
-            int color = ContextCompat.getColor(holder.itemView.getContext(), R.color.gray);
-            holder.orderStatusIcon.setImageTintList(ColorStateList.valueOf(color));
-        }
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_order_detail);
 
-        // Click listener for order item (whole card) - MODIFIED
-        holder.itemView.setOnClickListener(v -> {
-            // 1. Create the Intent for the detail activity
-            Intent intent = new Intent(holder.itemView.getContext(), OrderDetailActivity.class);
-
-            // 2. Pass the unique Order ID to the new activity
-            intent.putExtra("ORDER_ID", item.id);
-
-            // 3. Start the new activity
-            holder.itemView.getContext().startActivity(intent);
-
-            // Optional: Display a Toast for confirmation during testing
-            Toast.makeText(holder.itemView.getContext(), "Opening details for " + item.id, Toast.LENGTH_SHORT).show();
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
         });
+
+        // Initialize views
+        orderDetailHeader = findViewById(R.id.orderDetailHeader);
+        recyclerTimeline = findViewById(R.id.recyclerTimeline);
+
+        // 1. Get the Order ID passed from the previous activity
+        if (getIntent().hasExtra("ORDER_ID")) {
+            orderId = getIntent().getStringExtra("ORDER_ID");
+            orderDetailHeader.setText(String.format(Locale.getDefault(), "Tracking Order %s", orderId));
+        } else {
+            Toast.makeText(this, "Error: No Order ID provided.", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+
+        // 2. Setup the Timeline RecyclerView
+        recyclerTimeline.setLayoutManager(new LinearLayoutManager(this));
+
+        // 3. Start the tracking update process
+        startTrackingUpdates();
     }
 
     @Override
-    public int getItemCount() {
-        return items.size();
+    protected void onPause() {
+        super.onPause();
+        // Stop the polling loop when the user leaves the screen
+        if (trackingRunnable != null) {
+            handler.removeCallbacks(trackingRunnable);
+        }
     }
 
-    public static class OrderViewHolder extends RecyclerView.ViewHolder {
-        ImageView orderStatusIcon, orderArrow;
-        TextView orderIdText, orderDateStatusText, orderPriceText;
+    // --- Core Polling Logic (Replaces the old TODO) ---
+    private void startTrackingUpdates() {
+        trackingRunnable = new Runnable() {
+            @Override
+            public void run() {
+                // 1. API Call Simulation: This is where you call your backend!
+                String currentStatus = getSimulatedStatus(); // Replace with API.fetchStatus(orderId)
 
-        public OrderViewHolder(View itemView) {
-            super(itemView);
-            orderStatusIcon = itemView.findViewById(R.id.orderStatusIcon);
-            orderArrow = itemView.findViewById(R.id.orderArrow);
-            orderIdText = itemView.findViewById(R.id.orderIdText);
-            orderDateStatusText = itemView.findViewById(R.id.orderDateStatusText);
-            orderPriceText = itemView.findViewById(R.id.orderPriceText);
+                // 2. Update the UI based on the new status
+                updateTimelineUI(currentStatus);
+
+                // 3. Continue polling only if the order is not fully delivered
+                if (!currentStatus.equals("DELIVERED")) {
+                    // Poll the API every 10 seconds (10000ms)
+                    handler.postDelayed(this, 10000);
+                } else {
+                    Toast.makeText(OrderDetailActivity.this, "Order " + orderId + " is COMPLETE.", Toast.LENGTH_LONG).show();
+                }
+            }
+        };
+        // Start the initial check immediately
+        handler.post(trackingRunnable);
+    }
+
+    // --- Utility Methods ---
+    private void updateTimelineUI(String currentStatus) {
+        if (timelineAdapter == null) {
+            // Initialize the adapter on the first update
+            timelineAdapter = new TimelineAdapter(fixedTimelineSteps, currentStatus);
+            recyclerTimeline.setAdapter(timelineAdapter);
+        } else {
+            // Update the existing adapter with the new status
+            timelineAdapter.currentStatus = currentStatus;
+            timelineAdapter.notifyDataSetChanged();
         }
+    }
+
+    // --- DEFINES THE FIXED TRACKING STEPS (Order matters!) ---
+    private List<TimelineAdapter.TimelineStep> createFixedTimelineSteps() {
+        List<TimelineAdapter.TimelineStep> steps = new ArrayList<>();
+        // Title, Status Code (must match server), Placeholder Timestamp
+        steps.add(new TimelineAdapter.TimelineStep("Order Placed", "PLACED", "Just now"));
+        steps.add(new TimelineAdapter.TimelineStep("Ready for Pickup", "READY_FOR_PICKUP", "30 mins ago"));
+        steps.add(new TimelineAdapter.TimelineStep("In Transit", "IN_TRANSIT", "15 mins ago"));
+        steps.add(new TimelineAdapter.TimelineStep("Delivered", "DELIVERED", "1 min ago"));
+        return steps;
+    }
+
+    // --- TEMPORARY SIMULATION METHOD (REMOVE IN PRODUCTION) ---
+    private String getSimulatedStatus() {
+        // Simulates the status progression: PLACED -> READY_FOR_PICKUP -> IN_TRANSIT -> DELIVERED
+        long totalTime = 40000; // 40 seconds cycle
+        long elapsedTime = System.currentTimeMillis() % totalTime;
+
+        if (elapsedTime < 10000) return "PLACED";
+        if (elapsedTime < 20000) return "READY_FOR_PICKUP";
+        if (elapsedTime < 30000) return "IN_TRANSIT";
+        return "DELIVERED";
     }
 }
