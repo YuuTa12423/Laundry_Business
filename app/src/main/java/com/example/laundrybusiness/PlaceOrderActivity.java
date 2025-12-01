@@ -3,9 +3,12 @@ package com.example.laundrybusiness;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
+import android.os.Handler; // ADDED
+import android.os.Looper; // ADDED
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.RadioButton; // ADDED to get selected radio button text
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -18,6 +21,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.vishnusivadas.advanced_httpurlconnection.PutData; // ADDED
 
 import java.util.Calendar;
 import java.util.Locale;
@@ -76,10 +80,10 @@ public class PlaceOrderActivity extends AppCompatActivity {
         });
 
 
-        // --- 3. SUBMISSION LOGIC: ONLY ADD ORDER ON SUCCESSFUL COMPLETION ---
+        // --- 3. SUBMISSION LOGIC: ONLY ADD ORDER ON SUCCESSFUL COMPLETION (MODIFIED) ---
         submitOrderButton.setOnClickListener(v -> {
 
-            // 3a. Validation Checks (Return if any fails)
+            // --- 3a. Validation Checks (Return if any fails) ---
             if (streetBarangay.getText().toString().trim().isEmpty() ||
                     city.getText().toString().trim().isEmpty() ||
                     zipCode.getText().toString().trim().isEmpty()) {
@@ -111,24 +115,74 @@ public class PlaceOrderActivity extends AppCompatActivity {
                 }
             }
 
-            // =========================================================================
-            // 3b. SUCCESSFUL COMPLETION: EXECUTE THE ORDER ADDITION/SUBMISSION
-            // =========================================================================
-
-            // Determine data fields to be sent (Example of data gathering)
+            // --- 3b. Data Collection (Collect all form inputs) ---
+            String fullAddress = streetBarangay.getText().toString() + ", " + city.getText().toString() + ", " + zipCode.getText().toString();
+            String serviceType = ((RadioButton) findViewById(serviceTypeGroup.getCheckedRadioButtonId())).getText().toString();
+            String weight = weightEstimate.getText().toString().trim();
+            String detergent = detergentSpinner.getSelectedItem().toString();
+            String hasSoftener = softenerCheck.isChecked() ? "Yes" : "No";
+            String dryingPref = (dryingGroup.getCheckedRadioButtonId() != -1) ? ((RadioButton) findViewById(dryingGroup.getCheckedRadioButtonId())).getText().toString() : "Not Specified";
+            String foldingPref = (foldingGroup.getCheckedRadioButtonId() != -1) ? ((RadioButton) findViewById(foldingGroup.getCheckedRadioButtonId())).getText().toString() : "Not Specified";
+            String scheduling = ((RadioButton) findViewById(schedulingGroup.getCheckedRadioButtonId())).getText().toString();
+            String dateTime = pickUpDate.getText().toString() + " " + pickUpTime.getText().toString();
             String paymentMethod = (paymentMethodGroup.getCheckedRadioButtonId() == R.id.paymentGcash) ? "GCASH" : "COP";
-            String referenceNumber = (paymentMethod.equals("GCASH")) ? gcashReference.getText().toString() : "";
-
-            // 💡 TODO: Place your HTTP/Retrofit call here to send ALL collected data
-            // (Address, Service, Preferences, Scheduling, Payment, Reference) to the server.
-            // Only upon receiving a successful server response should you display the success Toast.
+            String referenceNumber = (paymentMethod.equals("GCASH")) ? gcashReference.getText().toString() : "N/A";
+            String instructions = specialInstructions.getText().toString().trim();
 
 
-            // --- Placeholder for successful network call ---
-            Toast.makeText(this, "Order #999 Added Successfully via " + paymentMethod + "!", Toast.LENGTH_LONG).show();
+            // --- 3c. Execute Network Submission (Fills the TODO) ---
 
-            // --- Final Action: Close the form ---
-            finish();  // Go back to MainActivity
+            // Set up the network call on a background thread
+            Handler handler = new Handler(Looper.getMainLooper());
+            handler.post(() -> {
+                // You must update the URL to your actual server path!
+                String url = "http://172.17.12.249/LaundryServiceLogInRegister/order_submission.php";
+
+                String[] field = new String[12];
+                field[0] = "address";
+                field[1] = "service_type";
+                field[2] = "weight_estimate";
+                field[3] = "detergent";
+                field[4] = "softener";
+                field[5] = "drying_pref";
+                field[6] = "folding_pref";
+                field[7] = "scheduling";
+                field[8] = "pickup_datetime";
+                field[9] = "payment_method";
+                field[10] = "reference_number";
+                field[11] = "instructions";
+
+                String[] data = new String[12];
+                data[0] = fullAddress;
+                data[1] = serviceType;
+                data[2] = weight;
+                data[3] = detergent;
+                data[4] = hasSoftener;
+                data[5] = dryingPref;
+                data[6] = foldingPref;
+                data[7] = scheduling;
+                data[8] = dateTime;
+                data[9] = paymentMethod;
+                data[10] = referenceNumber;
+                data[11] = instructions;
+
+                PutData putData = new PutData(url, "POST", field, data);
+                if (putData.startPut()) {
+                    if (putData.onComplete()) {
+                        String result = putData.getResult();
+                        if (result.startsWith("Order Success")) { // Assume server returns "Order Success #123"
+                            Toast.makeText(getApplicationContext(), "Order submitted successfully! " + result, Toast.LENGTH_LONG).show();
+                            finish();
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Submission Failed: " + result, Toast.LENGTH_LONG).show();
+                        }
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Submission Failed: Check server response", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(getApplicationContext(), "Connection Error or Script Not Found", Toast.LENGTH_SHORT).show();
+                }
+            });
         });
     }
 
