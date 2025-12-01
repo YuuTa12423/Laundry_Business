@@ -16,7 +16,7 @@ import java.util.List;
 
 public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHolder> {
     private List<OrderItem> items;
-    // REMOVED: private View.OnClickListener onItemClickListener; (Unused field)
+    // REMOVED: private View.OnClickListener onItemClickListener; // Removed unused field
 
     public OrderAdapter(List<OrderItem> items) {
         this.items = items;
@@ -37,6 +37,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
         holder.orderPriceText.setText("Total: " + item.price);
 
         // Notification/Status Icon Tint (Logic remains the same)
+        // NOTE: In a fully updated system, item.isDelivered should be replaced by item.currentStatus.
         if (item.isDelivered) {
             holder.orderStatusIcon.setImageResource(android.R.drawable.checkbox_on_background);
             int color = ContextCompat.getColor(holder.itemView.getContext(), R.color.primary);
@@ -47,7 +48,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             holder.orderStatusIcon.setImageTintList(ColorStateList.valueOf(color));
         }
 
-        // Click listener for order item (whole card) - MODIFIED
+        // Click listener for order item (whole card) - MODIFIED FOR NAVIGATION
         holder.itemView.setOnClickListener(v -> {
             // 1. Create the Intent for the detail activity
             Intent intent = new Intent(holder.itemView.getContext(), OrderDetailActivity.class);
