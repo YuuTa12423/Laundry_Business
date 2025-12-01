@@ -1,5 +1,3 @@
-// File: OrderDetailActivity.java
-
 package com.example.laundrybusiness;
 
 import android.os.Bundle;
@@ -19,6 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+// Import the external adapter and data model
+import com.example.laundrybusiness.TimelineAdapter.TimelineStep;
+
 public class OrderDetailActivity extends AppCompatActivity {
 
     private String orderId;
@@ -28,8 +29,8 @@ public class OrderDetailActivity extends AppCompatActivity {
     private Runnable trackingRunnable;
     private TimelineAdapter timelineAdapter;
 
-    // Define the fixed steps for the timeline
-    private final List<TimelineAdapter.TimelineStep> fixedTimelineSteps = createFixedTimelineSteps();
+    // Define the fixed steps for the timeline (This should be fetched from API in production)
+    private final List<TimelineStep> fixedTimelineSteps = createFixedTimelineSteps();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,18 +75,28 @@ public class OrderDetailActivity extends AppCompatActivity {
         }
     }
 
-    // --- Core Polling Logic (Replaces the old TODO) ---
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Restart the polling loop when the user returns to the screen
+        if (trackingRunnable != null) {
+            handler.post(trackingRunnable);
+        }
+    }
+
+    // --- Implementation for startTrackingUpdates() (Fills TODO) ---
     private void startTrackingUpdates() {
         trackingRunnable = new Runnable() {
             @Override
             public void run() {
-                // 1. API Call Simulation: This is where you call your backend!
-                String currentStatus = getSimulatedStatus(); // Replace with API.fetchStatus(orderId)
+                // 1. API Call Simulation: FETCH LIVE STATUS
+                // String currentStatus = API.fetchStatus(orderId); // Replace with real API call
+                String currentStatus = getSimulatedStatus();
 
                 // 2. Update the UI based on the new status
                 updateTimelineUI(currentStatus);
 
-                // 3. Continue polling only if the order is not fully delivered
+                // 3. Schedule the next check (Polling)
                 if (!currentStatus.equals("DELIVERED")) {
                     // Poll the API every 10 seconds (10000ms)
                     handler.postDelayed(this, 10000);
@@ -108,29 +119,33 @@ public class OrderDetailActivity extends AppCompatActivity {
             // Update the existing adapter with the new status
             timelineAdapter.currentStatus = currentStatus;
             timelineAdapter.notifyDataSetChanged();
+            // Scroll to the current item (optional but recommended)
+            // Note: In a real app, you would calculate the item's position based on the status.
         }
     }
 
     // --- DEFINES THE FIXED TRACKING STEPS (Order matters!) ---
-    private List<TimelineAdapter.TimelineStep> createFixedTimelineSteps() {
-        List<TimelineAdapter.TimelineStep> steps = new ArrayList<>();
-        // Title, Status Code (must match server), Placeholder Timestamp
-        steps.add(new TimelineAdapter.TimelineStep("Order Placed", "PLACED", "Just now"));
-        steps.add(new TimelineAdapter.TimelineStep("Ready for Pickup", "READY_FOR_PICKUP", "30 mins ago"));
-        steps.add(new TimelineAdapter.TimelineStep("In Transit", "IN_TRANSIT", "15 mins ago"));
-        steps.add(new TimelineAdapter.TimelineStep("Delivered", "DELIVERED", "1 min ago"));
+    private List<TimelineStep> createFixedTimelineSteps() {
+        List<TimelineStep> steps = new ArrayList<>();
+        // Status codes must match what your Admin Panel sends!
+        steps.add(new TimelineStep("Order Placed", "PLACED", "Just now"));
+        steps.add(new TimelineStep("Picked Up by Driver", "COLLECTED", "Awaiting update..."));
+        steps.add(new TimelineStep("Washing & Processing", "IN_WASH", "Awaiting update..."));
+        steps.add(new TimelineStep("Ready for Pickup", "READY_FOR_PICKUP", "Awaiting update..."));
+        steps.add(new TimelineStep("Delivered/Closed", "DELIVERED", "Awaiting update..."));
         return steps;
     }
 
     // --- TEMPORARY SIMULATION METHOD (REMOVE IN PRODUCTION) ---
+    // Simulates the status progression by cycling through the fixed steps every few seconds.
     private String getSimulatedStatus() {
-        // Simulates the status progression: PLACED -> READY_FOR_PICKUP -> IN_TRANSIT -> DELIVERED
-        long totalTime = 40000; // 40 seconds cycle
-        long elapsedTime = System.currentTimeMillis() % totalTime;
+        // Defines the time each status should last before moving to the next
+        long stepDuration = 5000; // 5 seconds per step
+        long totalCycleTime = fixedTimelineSteps.size() * stepDuration;
 
-        if (elapsedTime < 10000) return "PLACED";
-        if (elapsedTime < 20000) return "READY_FOR_PICKUP";
-        if (elapsedTime < 30000) return "IN_TRANSIT";
-        return "DELIVERED";
+        long elapsedTime = System.currentTimeMillis() % totalCycleTime;
+        int index = (int) (elapsedTime / stepDuration);
+
+        return fixedTimelineSteps.get(index).dataStatus;
     }
 }
