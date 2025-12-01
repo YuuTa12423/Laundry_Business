@@ -1,3 +1,5 @@
+// File: OrderDetailActivity.java
+
 package com.example.laundrybusiness;
 
 import android.os.Bundle;
@@ -13,7 +15,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -24,11 +26,10 @@ public class OrderDetailActivity extends AppCompatActivity {
     private RecyclerView recyclerTimeline;
     private Handler handler = new Handler();
     private Runnable trackingRunnable;
+    private TimelineAdapter timelineAdapter;
 
-    // NOTE: This array simulates status data fetched from an API
-    private static final List<String> STATUS_STEPS = Arrays.asList(
-            "ORDER_PLACED", "PICKED_UP", "IN_WASH", "READY_FOR_PICKUP", "DELIVERED"
-    );
+    // Define the fixed steps for the timeline
+    private final List<TimelineAdapter.TimelineStep> fixedTimelineSteps = createFixedTimelineSteps();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +48,7 @@ public class OrderDetailActivity extends AppCompatActivity {
         orderDetailHeader = findViewById(R.id.orderDetailHeader);
         recyclerTimeline = findViewById(R.id.recyclerTimeline);
 
-        // 1. Get the Order ID passed from the OrderAdapter
+        // 1. Get the Order ID passed from the previous activity
         if (getIntent().hasExtra("ORDER_ID")) {
             orderId = getIntent().getStringExtra("ORDER_ID");
             orderDetailHeader.setText(String.format(Locale.getDefault(), "Tracking Order %s", orderId));
@@ -57,35 +58,39 @@ public class OrderDetailActivity extends AppCompatActivity {
             return;
         }
 
-        // 2. Setup the Timeline RecyclerView (Placeholder structure)
+        // 2. Setup the Timeline RecyclerView
         recyclerTimeline.setLayoutManager(new LinearLayoutManager(this));
 
-        // 3. Start the tracking update process (polling loop)
+        // 3. Start the tracking update process
         startTrackingUpdates();
     }
 
-    // Polling logic to simulate fetching status updates from the Admin Panel API
-    private void startTrackingUpdates() {
-        // --- This entire section is a simplified placeholder for API Polling ---
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Stop the polling loop when the user leaves the screen
+        if (trackingRunnable != null) {
+            handler.removeCallbacks(trackingRunnable);
+        }
+    }
 
+    // --- Core Polling Logic (Replaces the old TODO) ---
+    private void startTrackingUpdates() {
         trackingRunnable = new Runnable() {
             @Override
             public void run() {
-                // In a real app, this would be a Retrofit call:
-                // String currentStatus = API.fetchStatus(orderId);
+                // 1. API Call Simulation: This is where you call your backend!
+                String currentStatus = getSimulatedStatus(); // Replace with API.fetchStatus(orderId)
 
-                // For demonstration: We'll simulate status progression
-                String currentStatus = getSimulatedStatus();
-
-                // Update the RecyclerView/Timeline UI
+                // 2. Update the UI based on the new status
                 updateTimelineUI(currentStatus);
 
-                // Continue polling only if the order is not fully delivered
+                // 3. Continue polling only if the order is not fully delivered
                 if (!currentStatus.equals("DELIVERED")) {
                     // Poll the API every 10 seconds (10000ms)
                     handler.postDelayed(this, 10000);
                 } else {
-                    Toast.makeText(OrderDetailActivity.this, "Order " + orderId + " is COMPLETE.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(OrderDetailActivity.this, "Order " + orderId + " is COMPLETE.", Toast.LENGTH_LONG).show();
                 }
             }
         };
@@ -93,28 +98,39 @@ public class OrderDetailActivity extends AppCompatActivity {
         handler.post(trackingRunnable);
     }
 
-    // Method to stop the tracking loop when the activity is closed
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (trackingRunnable != null) {
-            handler.removeCallbacks(trackingRunnable);
+    // --- Utility Methods ---
+    private void updateTimelineUI(String currentStatus) {
+        if (timelineAdapter == null) {
+            // Initialize the adapter on the first update
+            timelineAdapter = new TimelineAdapter(fixedTimelineSteps, currentStatus);
+            recyclerTimeline.setAdapter(timelineAdapter);
+        } else {
+            // Update the existing adapter with the new status
+            timelineAdapter.currentStatus = currentStatus;
+            timelineAdapter.notifyDataSetChanged();
         }
     }
 
-    // --- Utility Methods for UI (Needs implementation of TimelineAdapter) ---
-    private void updateTimelineUI(String currentStatus) {
-        // Here you would instantiate your TimelineAdapter
-        // with the list of status steps (STATUS_STEPS) and the current status.
-        // For now, we'll just log the status.
-        System.out.println("Current status for " + orderId + ": " + currentStatus);
+    // --- DEFINES THE FIXED TRACKING STEPS (Order matters!) ---
+    private List<TimelineAdapter.TimelineStep> createFixedTimelineSteps() {
+        List<TimelineAdapter.TimelineStep> steps = new ArrayList<>();
+        // Title, Status Code (must match server), Placeholder Timestamp
+        steps.add(new TimelineAdapter.TimelineStep("Order Placed", "PLACED", "Just now"));
+        steps.add(new TimelineAdapter.TimelineStep("Ready for Pickup", "READY_FOR_PICKUP", "30 mins ago"));
+        steps.add(new TimelineAdapter.TimelineStep("In Transit", "IN_TRANSIT", "15 mins ago"));
+        steps.add(new TimelineAdapter.TimelineStep("Delivered", "DELIVERED", "1 min ago"));
+        return steps;
     }
 
     // --- TEMPORARY SIMULATION METHOD (REMOVE IN PRODUCTION) ---
     private String getSimulatedStatus() {
-        // Simulates the status moving from PLACED -> PICKED_UP, etc.
-        // This is where a real API would return the true status.
-        int index = (int) (System.currentTimeMillis() / 10000 % STATUS_STEPS.size());
-        return STATUS_STEPS.get(index);
+        // Simulates the status progression: PLACED -> READY_FOR_PICKUP -> IN_TRANSIT -> DELIVERED
+        long totalTime = 40000; // 40 seconds cycle
+        long elapsedTime = System.currentTimeMillis() % totalTime;
+
+        if (elapsedTime < 10000) return "PLACED";
+        if (elapsedTime < 20000) return "READY_FOR_PICKUP";
+        if (elapsedTime < 30000) return "IN_TRANSIT";
+        return "DELIVERED";
     }
 }
